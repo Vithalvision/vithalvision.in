@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, gondia-server]
+    runs-on: [self-hosted, Windows, X64]
 
     steps:
       - name: Checkout repository
