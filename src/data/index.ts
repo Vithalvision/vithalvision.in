@@ -6,9 +6,9 @@ export const companyInfo = {
   description:
     "A film production and media-tech company driven by creativity, innovation and a passion for storytelling.",
   email: "info@vithalvision.in",
-  phone: "+91 12345 67890",
+  phone: "+919145594704",
   address: "Gondia, Maharashtra, India",
-  businessHours: "Mon – Sat : 10:00 AM – 07:00 PM",
+  businessHours: "Only by Appointment",
   social: {
     facebook: "#",
     twitter: "#",
