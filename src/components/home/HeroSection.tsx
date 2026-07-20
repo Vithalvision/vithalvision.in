@@ -34,7 +34,7 @@ export default function HeroSection() {
             className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6 opacity-0 animate-fade-up"
             style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
           >
-            <span className="text-gray-900">Creating Stories, CI-TEST</span>
+            <span className="text-gray-900">Creating Stories,</span>
             <br />
             <span className="text-gray-900">Building Technology,</span>
             <br />
