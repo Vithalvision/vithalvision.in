@@ -18,18 +18,93 @@ import {
 // ── Theme tokens ──────────────────────────────────────────────────────────────
 const inp =
   "w-full border border-[#d4c9a8] rounded-none px-4 py-3 text-sm text-[#1a1a2e] bg-white focus:outline-none focus:border-[#B5922A] focus:ring-0 transition placeholder:text-[#aaa8a0] font-sans";
+const inpError =
+  "w-full border border-red-400 rounded-none px-4 py-3 text-sm text-[#1a1a2e] bg-red-50/40 focus:outline-none focus:border-red-500 focus:ring-0 transition placeholder:text-[#aaa8a0] font-sans";
 const sel =
   "w-full border border-[#d4c9a8] rounded-none px-4 py-3 text-sm text-[#1a1a2e] bg-white focus:outline-none focus:border-[#B5922A] focus:ring-0 transition font-sans";
+
+// ── Validation helpers ────────────────────────────────────────────────────────
+// General email format check (name@domain.tld). If you want to ONLY accept
+// @gmail.com addresses, swap the regex for: /^[^\s@]+@gmail\.com$/i
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+// Strips spaces/dashes/+91/country code and checks for a valid 10-digit
+// Indian mobile number (starts 6-9, exactly 10 digits).
+function isValidMobile(value: string): boolean {
+  let digits = value.replace(/\D/g, ""); // keep digits only
+  if (digits.length === 12 && digits.startsWith("91")) {
+    digits = digits.slice(2);
+  }
+  if (digits.length === 11 && digits.startsWith("0")) {
+    digits = digits.slice(1);
+  }
+  return /^[6-9]\d{9}$/.test(digits);
+}
+
+// Returns an error-message map for whichever fields on the CURRENT step are
+// invalid. Empty object = step is valid, ok to continue.
+function getStepErrors(step: number, d: AuditionFormData): Record<string, string> {
+  const errors: Record<string, string> = {};
+
+  if (step === 0) {
+    if (!d.fullName) errors.fullName = "Full name is required.";
+    if (!d.dob) errors.dob = "Date of birth is required.";
+    if (!d.gender) errors.gender = "Please select a gender.";
+
+    if (!d.mobile) errors.mobile = "Mobile number is required.";
+    else if (!isValidMobile(d.mobile))
+      errors.mobile = "Enter a valid 10-digit mobile number.";
+
+    if (!d.whatsapp) errors.whatsapp = "WhatsApp number is required.";
+    else if (!isValidMobile(d.whatsapp))
+      errors.whatsapp = "Enter a valid 10-digit WhatsApp number.";
+
+    if (!d.email) errors.email = "Email address is required.";
+    else if (!isValidEmail(d.email))
+      errors.email = "Enter a valid email address (e.g. name@example.com).";
+
+    if (!d.city) errors.city = "City is required.";
+    if (!d.state) errors.state = "State is required.";
+    if (!d.country) errors.country = "Country is required.";
+    if (!d.languages) errors.languages = "Languages known is required.";
+  }
+
+  if (step === 1) {
+    if (!d.primaryCategory) errors.primaryCategory = "Please select a category.";
+    if (d.primaryCategory === "Other" && !d.otherCategory)
+      errors.otherCategory = "Please specify your category.";
+  }
+
+  if (step === 2) {
+    if (!d.experienceLevel) errors.experienceLevel = "Please select an experience level.";
+  }
+
+  if (step === 5) {
+    if (!d.availableFor || d.availableFor.length === 0)
+      errors.availableFor = "Select at least one availability option.";
+  }
+
+  if (step === 7) {
+    if (!(d.v1 && d.v2 && d.v3 && d.v4))
+      errors.verification = "Please confirm all four statements above.";
+  }
+
+  return errors;
+}
 
 // ── Shared UI helpers ─────────────────────────────────────────────────────────
 function Field({
   label,
   children,
   required,
+  error,
 }: {
   label: string;
   children: React.ReactNode;
   required?: boolean;
+  error?: string;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -38,6 +113,9 @@ function Field({
         {required && " *"}
       </label>
       {children}
+      {error && (
+        <p className="text-[11px] text-red-500 font-medium mt-0.5">{error}</p>
+      )}
     </div>
   );
 }
@@ -128,33 +206,35 @@ function SectionHeading({ label, title }: { label: string; title: string }) {
 function Step1({
   d,
   u,
+  errors,
 }: {
   d: AuditionFormData;
   u: (k: keyof AuditionFormData, v: any) => void;
+  errors: Record<string, string>;
 }) {
   return (
     <div>
       <SectionHeading label="Step 01" title="Personal Information" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
-          <Field label="Full Name" required>
+          <Field label="Full Name" required error={errors.fullName}>
             <input
-              className={inp}
+              className={errors.fullName ? inpError : inp}
               placeholder="Enter your full name"
               value={d.fullName}
               onChange={(e) => u("fullName", e.target.value)}
             />
           </Field>
         </div>
-        <Field label="Date of Birth" required>
+        <Field label="Date of Birth" required error={errors.dob}>
           <input
             type="date"
-            className={inp}
+            className={errors.dob ? inpError : inp}
             value={d.dob}
             onChange={(e) => u("dob", e.target.value)}
           />
         </Field>
-        <Field label="Gender" required>
+        <Field label="Gender" required error={errors.gender}>
           <PillRadio
             name="gender"
             options={["Male", "Female", "Other"]}
@@ -162,60 +242,60 @@ function Step1({
             onChange={(v) => u("gender", v)}
           />
         </Field>
-        <Field label="Mobile Number" required>
+        <Field label="Mobile Number" required error={errors.mobile}>
           <input
-            className={inp}
+            className={errors.mobile ? inpError : inp}
             placeholder="+91 XXXXX XXXXX"
             value={d.mobile}
             onChange={(e) => u("mobile", e.target.value)}
           />
         </Field>
-        <Field label="WhatsApp Number" required>
+        <Field label="WhatsApp Number" required error={errors.whatsapp}>
           <input
-            className={inp}
+            className={errors.whatsapp ? inpError : inp}
             placeholder="+91 XXXXX XXXXX"
             value={d.whatsapp}
             onChange={(e) => u("whatsapp", e.target.value)}
           />
         </Field>
         <div className="sm:col-span-2">
-          <Field label="Email Address" required>
+          <Field label="Email Address" required error={errors.email}>
             <input
               type="email"
-              className={inp}
+              className={errors.email ? inpError : inp}
               placeholder="you@email.com"
               value={d.email}
               onChange={(e) => u("email", e.target.value)}
             />
           </Field>
         </div>
-        <Field label="City" required>
+        <Field label="City" required error={errors.city}>
           <input
-            className={inp}
+            className={errors.city ? inpError : inp}
             placeholder="City"
             value={d.city}
             onChange={(e) => u("city", e.target.value)}
           />
         </Field>
-        <Field label="State" required>
+        <Field label="State" required error={errors.state}>
           <input
-            className={inp}
+            className={errors.state ? inpError : inp}
             placeholder="State"
             value={d.state}
             onChange={(e) => u("state", e.target.value)}
           />
         </Field>
-        <Field label="Country" required>
+        <Field label="Country" required error={errors.country}>
           <input
-            className={inp}
+            className={errors.country ? inpError : inp}
             placeholder="Country"
             value={d.country}
             onChange={(e) => u("country", e.target.value)}
           />
         </Field>
-        <Field label="Languages Known" required>
+        <Field label="Languages Known" required error={errors.languages}>
           <input
-            className={inp}
+            className={errors.languages ? inpError : inp}
             placeholder="Hindi, English, Marathi…"
             value={d.languages}
             onChange={(e) => u("languages", e.target.value)}
@@ -229,14 +309,16 @@ function Step1({
 function Step2({
   d,
   u,
+  errors,
 }: {
   d: AuditionFormData;
   u: (k: keyof AuditionFormData, v: any) => void;
+  errors: Record<string, string>;
 }) {
   return (
     <div>
       <SectionHeading label="Step 02" title="Talent Category" />
-      <Field label="Select Your Primary Category" required>
+      <Field label="Select Your Primary Category" required error={errors.primaryCategory}>
         <div className="flex flex-wrap gap-2 mt-1">
           {talentCategories.map((c) => (
             <button
@@ -256,9 +338,9 @@ function Step2({
       </Field>
       {d.primaryCategory === "Other" && (
         <div className="mt-6">
-          <Field label="Specify Your Category" required>
+          <Field label="Specify Your Category" required error={errors.otherCategory}>
             <input
-              className={inp}
+              className={errors.otherCategory ? inpError : inp}
               placeholder="e.g. Folk Artist, Stunt Performer…"
               value={d.otherCategory}
               onChange={(e) => u("otherCategory", e.target.value)}
@@ -277,16 +359,18 @@ function Step2({
 function Step3({
   d,
   u,
+  errors,
 }: {
   d: AuditionFormData;
   u: (k: keyof AuditionFormData, v: any) => void;
+  errors: Record<string, string>;
 }) {
   return (
     <div>
       <SectionHeading label="Step 03" title="Experience Details" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="sm:col-span-2">
-          <Field label="Experience Level" required>
+          <Field label="Experience Level" required error={errors.experienceLevel}>
             <div className="mt-1">
               <PillRadio
                 name="exp"
@@ -715,15 +799,17 @@ function Step5({
 function Step6({
   d,
   u,
+  errors,
 }: {
   d: AuditionFormData;
   u: (k: keyof AuditionFormData, v: any) => void;
+  errors: Record<string, string>;
 }) {
   return (
     <div>
       <SectionHeading label="Step 06" title="Availability" />
       <div className="flex flex-col gap-8">
-        <Field label="Available For" required>
+        <Field label="Available For" required error={errors.availableFor}>
           <div className="mt-1">
             <PillCheck
               options={availabilityOptions}
@@ -783,9 +869,11 @@ function Step7({
 function Step8({
   d,
   u,
+  errors,
 }: {
   d: AuditionFormData;
   u: (k: keyof AuditionFormData, v: any) => void;
+  errors: Record<string, string>;
 }) {
   const checks: [keyof AuditionFormData, string][] = [
     ["v1", "All information provided is accurate and complete."],
@@ -831,6 +919,11 @@ function Step8({
           </label>
         ))}
       </div>
+      {errors.verification && (
+        <p className="mt-3 text-[11px] text-red-500 font-medium">
+          {errors.verification}
+        </p>
+      )}
       <div className="mt-8 p-5 border border-[#d4c9a8] bg-[#fdf9f0]">
         <p className="text-xs text-[#8a7040] leading-relaxed">
           <span className="font-bold text-[#B5922A] uppercase tracking-wider">
@@ -855,16 +948,54 @@ export default function AuditionForm() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const update = (key: keyof AuditionFormData, val: any) =>
+  const update = (key: keyof AuditionFormData, val: any) => {
     setData((prev) => ({ ...prev, [key]: val }));
+    // clear that field's error the moment the user edits it
+    if (errors[key as string]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[key as string];
+        return next;
+      });
+    }
+  };
 
   const allVerified = data.v1 && data.v2 && data.v3 && data.v4;
   const progress = Math.round(((step + 1) / auditionFormSteps.length) * 100);
 
-  // ── Submit handler — POSTs to live backend API ──────────────────────────────
+  // Blocks "Continue" if the current step has invalid/empty required fields
+  const handleContinue = () => {
+    const stepErrors = getStepErrors(step, data);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
+    setErrors({});
+    setStep((s) => Math.min(auditionFormSteps.length - 1, s + 1));
+  };
+
+  const goBack = () => {
+    setErrors({});
+    setStep((s) => Math.max(0, s - 1));
+  };
+
+  const goToStep = (i: number) => {
+    if (i > step) return; // can't jump ahead via tabs
+    setErrors({});
+    setStep(i);
+  };
+
+  // Validates the final step, then POSTs to the real backend API
   const handleSubmit = async () => {
+    const stepErrors = getStepErrors(step, data);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
     if (!allVerified || isSubmitting) return;
+
     setIsSubmitting(true);
     setSubmitError("");
 
@@ -938,7 +1069,7 @@ export default function AuditionForm() {
         throw new Error(result.error || result.message || `Server error (${res.status})`);
       }
 
-      setSubmitted(true); // show success screen
+      setSubmitted(true); // show success screen only after a real, successful save
     } catch (err: any) {
       setSubmitError(
         err?.message || "Something went wrong. Please try again."
@@ -949,14 +1080,14 @@ export default function AuditionForm() {
   };
 
   const panels = [
-    <Step1 d={data} u={update} />,
-    <Step2 d={data} u={update} />,
-    <Step3 d={data} u={update} />,
+    <Step1 d={data} u={update} errors={errors} />,
+    <Step2 d={data} u={update} errors={errors} />,
+    <Step3 d={data} u={update} errors={errors} />,
     <Step4 d={data} u={update} />,
     <Step5 d={data} u={update} />,
-    <Step6 d={data} u={update} />,
+    <Step6 d={data} u={update} errors={errors} />,
     <Step7 d={data} u={update} />,
-    <Step8 d={data} u={update} />,
+    <Step8 d={data} u={update} errors={errors} />,
   ];
 
   if (submitted) {
@@ -996,6 +1127,7 @@ export default function AuditionForm() {
               onClick={() => {
                 setSubmitted(false);
                 setStep(0);
+                setErrors({});
                 setData(auditionFormInitialState);
               }}
               className="text-xs text-[#999] underline hover:text-[#B5922A] transition"
@@ -1048,12 +1180,12 @@ export default function AuditionForm() {
           </span>
         </div>
 
-        {/* Step tabs */}
+        {/* Step tabs — only completed steps or the current step are clickable */}
         <div className="flex overflow-x-auto gap-0 mb-10 border-b border-[#e8e2d4]">
           {auditionFormSteps.map((s, i) => (
             <button
               key={i}
-              onClick={() => i <= step && setStep(i)}
+              onClick={() => goToStep(i)}
               className={`flex-shrink-0 px-4 py-3 text-[10px] font-bold tracking-widest uppercase border-b-2 transition-all ${
                 i === step
                   ? "border-[#B5922A] text-[#B5922A]"
@@ -1075,7 +1207,7 @@ export default function AuditionForm() {
           {/* Navigation */}
           <div className="flex items-center justify-between mt-12 pt-8 border-t border-[#e8e2d4]">
             <button
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
+              onClick={goBack}
               disabled={step === 0}
               className="px-6 py-3 border border-[#d4c9a8] text-xs font-bold uppercase tracking-widest text-[#666] hover:border-[#B5922A] hover:text-[#B5922A] transition disabled:opacity-30 disabled:cursor-not-allowed"
             >
@@ -1084,11 +1216,7 @@ export default function AuditionForm() {
 
             {step < auditionFormSteps.length - 1 ? (
               <button
-                onClick={() =>
-                  setStep((s) =>
-                    Math.min(auditionFormSteps.length - 1, s + 1)
-                  )
-                }
+                onClick={handleContinue}
                 className="px-8 py-3 bg-[#B5922A] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#9a7a22] transition active:scale-95"
               >
                 Continue →
