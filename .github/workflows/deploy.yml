@@ -20,7 +20,14 @@ jobs:
       - name: Build the website
         run: npm run build
 
+      - name: Debug runner
+        shell: powershell
+        run: |
+          whoami
+          $env:PATH
+          where.exe pm2
+
       - name: Restart the live website
         shell: powershell
         run: |
-         & "C:\Users\Administrator\AppData\Roaming\npm\pm2.cmd" restart vithal-vision
+          & "C:\Users\Administrator\AppData\Roaming\npm\pm2.cmd" restart vithal-vision
