@@ -14,7 +14,11 @@ export const metadata: Metadata = {
 
   description:
     "Vithal Visions Private Limited is a film production, virtual production, post-production, and media-tech company in India. We create films, OTT content, music videos, and provide cutting-edge production technology solutions.",
-
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   keywords: [
     "film production company India",
     "virtual production studio India",
