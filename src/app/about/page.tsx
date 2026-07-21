@@ -8,7 +8,7 @@ import JourneyTimeline from "@/components/about/JourneyTimeline";
 export const metadata: Metadata = {
   title: "About Us",
   description:
-    "Learn about Vithal Visions Private Limited – our story, mission, vision and the team behind the brand.",
+    "Learn about Vithal Visions Private Limited – our story, mission.",
   alternates: {
     canonical: "https://vithalvision.in/about",
   },
