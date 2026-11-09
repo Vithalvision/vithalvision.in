@@ -8,35 +8,24 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: self-hosted
 
     steps:
       - name: Update production folder
-        shell: powershell
         run: |
-          cd C:\vithal\vithal-vision
+          cd /var/www/company-website/vithalvision.in
           git pull origin main
 
       - name: Install dependencies
-        shell: powershell
         run: |
-          cd C:\vithal\vithal-vision
+          cd /var/www/company-website/vithalvision.in
           npm ci
 
       - name: Build the website
-        shell: powershell
         run: |
-          cd C:\vithal\vithal-vision
+          cd /var/www/company-website/vithalvision.in
           npm run build
 
-      - name: Debug runner
-        shell: powershell
-        run: |
-          whoami
-          $env:PATH
-          where.exe pm2
-
       - name: Restart the live website
-        shell: powershell
         run: |
-          & "C:\Users\Administrator\AppData\Roaming\npm\pm2.cmd" restart vithal-vision
+          pm2 restart vithal-vision
