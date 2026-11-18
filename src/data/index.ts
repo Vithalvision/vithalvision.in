@@ -27,6 +27,7 @@ export const navLinks = [
   { label: "Blog", href: "/blog" },
   { label: "Gallery", href: "/gallery" },
   { label: "Auditions", href: "/audition" },
+  { label: "Career", href: "/careers" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -168,6 +169,7 @@ export const quickLinks = [
   { label: "Blog", href: "/#blog" },
   { label: "Gallery", href: "/#gallery" },
   { label: "Auditions", href: "/audition" },
+  { label: "Career", href: "/careers" },
   { label: "Contact", href: "/contact" },
 ];
 
