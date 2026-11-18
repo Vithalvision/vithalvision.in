@@ -1,31 +1,49 @@
-name: Deploy Vithal Vision
+name: Vithal Vision CD
 
 on:
   push:
     branches:
       - main
+
   workflow_dispatch:
+
+concurrency:
+  group: vithalvision-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    name: Deploy Vithal Vision
+    runs-on: [self-hosted, Linux, ARM64]
 
     steps:
-      - name: Update production folder
+      - name: Deploy website
+        shell: bash
         run: |
-          cd /var/www/company-website/vithalvision.in
-          git pull origin main
+          set -euo pipefail
 
-      - name: Install dependencies
-        run: |
-          cd /var/www/company-website/vithalvision.in
+          PROJECT_DIR="/var/www/company-website/vithalvision.in"
+
+          echo "Starting Vithal Vision deployment"
+
+          cd "$PROJECT_DIR"
+
+          echo "Fetching latest code"
+          git fetch origin main
+
+          echo "Pulling latest code"
+          git pull --ff-only origin main
+
+          echo "Installing dependencies"
           npm ci
 
-      - name: Build the website
-        run: |
-          cd /var/www/company-website/vithalvision.in
+          echo "Building production application"
           npm run build
 
-      - name: Restart the live website
-        run: |
-          pm2 restart vithal-vision
+          echo "Restarting PM2 application"
+          pm2 restart vithal-vision --update-env
+
+          pm2 save
+
+          echo "Deployment completed successfully"
+          pm2 status
