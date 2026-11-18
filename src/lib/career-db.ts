@@ -101,13 +101,13 @@ if (seedCount.count === 0) {
       application_deadline: "2026-12-31",
     },
     {
-      job_title: "AI Filmmaker Intern",
+      job_title: "Full Stack Developer",
       slug: "ai-filmmaker-intern",
-      department: "Production",
-      job_description: "Explore AI-assisted filmmaking, visual storytelling and emerging production workflows in real creative projects.",
-      responsibilities: JSON.stringify(["Create AI-assisted visual concepts", "Support pre-production and production workflows", "Experiment with emerging creative tools"]),
-      required_skills: JSON.stringify(["Filmmaking", "Storytelling", "AI Creative Tools", "Video Editing"]),
-      qualification: JSON.stringify(["Pursuing or completed a degree or course in Film, Media, Design or a related field"]),
+      department: "Technology",
+      job_description: "Build and maintain web applications and backend services that support Vithal Vision's creative and media workflows.",
+      responsibilities: JSON.stringify(["Develop responsive interfaces using React and Next.js", "Build APIs and server-side features with Node.js", "Integrate databases, test features and collaborate with the product team"]),
+      required_skills: JSON.stringify(["JavaScript or TypeScript", "React or Next.js", "Node.js", "REST APIs", "SQL", "Problem Solving"]),
+      qualification: JSON.stringify(["Pursuing or recently completed a degree in Computer Science, Software Engineering or a related field", "Personal, academic or professional web development projects are a plus"]),
       experience_min: 0,
       experience_max: 2,
       employment_type: "Internship",
@@ -116,13 +116,13 @@ if (seedCount.count === 0) {
       application_deadline: "2026-12-31",
     },
     {
-      job_title: "Social Media Marketing Intern",
+      job_title: "Sales & Business Development Intern",
       slug: "social-media-marketing-intern",
-      department: "Marketing",
-      job_description: "Help grow Vithal Vision's digital presence through engaging campaigns, creative storytelling and audience-focused content.",
-      responsibilities: JSON.stringify(["Plan and publish social media content", "Support campaign research and reporting", "Create engaging captions and community responses"]),
-      required_skills: JSON.stringify(["Social Media", "Content Creation", "Communication", "Analytics"]),
-      qualification: JSON.stringify(["Pursuing or completed a degree or course in Marketing, Media, Communication or a related field"]),
+      department: "Sales & Business Development",
+      job_description: "Help identify new business opportunities and build client relationships for Vithal Vision's film, media and technology services.",
+      responsibilities: JSON.stringify(["Research potential clients, partners and market opportunities", "Support sales presentations, proposals and pitches", "Follow up with prospective clients and maintain lead records"]),
+      required_skills: JSON.stringify(["Communication", "Lead Generation", "Sales and Negotiation", "Presentation Skills", "CRM or Spreadsheet Skills"]),
+      qualification: JSON.stringify(["Pursuing or recently completed a degree in Business, Marketing, Sales or a related field", "Interest in client relations and business development"]),
       experience_min: 0,
       experience_max: 2,
       employment_type: "Internship",
@@ -137,5 +137,52 @@ if (seedCount.count === 0) {
   });
   seed(seedJobs);
 }
+
+const updateFullStackJob = db.prepare(`
+  UPDATE jobs
+  SET job_title = @job_title,
+      department = @department,
+      job_description = @job_description,
+      responsibilities = @responsibilities,
+      required_skills = @required_skills,
+      qualification = @qualification,
+      updated_at = CURRENT_TIMESTAMP
+  WHERE slug = @slug
+    AND job_title = 'AI Filmmaker Intern'
+`);
+
+const updateSalesJob = db.prepare(`
+  UPDATE jobs
+  SET job_title = @job_title,
+      department = @department,
+      job_description = @job_description,
+      responsibilities = @responsibilities,
+      required_skills = @required_skills,
+      qualification = @qualification,
+      updated_at = CURRENT_TIMESTAMP
+  WHERE slug = @slug
+    AND job_title = 'Social Media Marketing Intern'
+`);
+
+db.transaction(() => {
+  updateFullStackJob.run({
+    job_title: "Full Stack Developer",
+    slug: "ai-filmmaker-intern",
+    department: "Technology",
+    job_description: "Build and maintain web applications and backend services that support Vithal Vision's creative and media workflows.",
+    responsibilities: JSON.stringify(["Develop responsive interfaces using React and Next.js", "Build APIs and server-side features with Node.js", "Integrate databases, test features and collaborate with the product team"]),
+    required_skills: JSON.stringify(["JavaScript or TypeScript", "React or Next.js", "Node.js", "REST APIs", "SQL", "Problem Solving"]),
+    qualification: JSON.stringify(["Pursuing or recently completed a degree in Computer Science, Software Engineering or a related field", "Personal, academic or professional web development projects are a plus"]),
+  });
+  updateSalesJob.run({
+    job_title: "Sales & Business Development Intern",
+    slug: "social-media-marketing-intern",
+    department: "Sales & Business Development",
+    job_description: "Help identify new business opportunities and build client relationships for Vithal Vision's film, media and technology services.",
+    responsibilities: JSON.stringify(["Research potential clients, partners and market opportunities", "Support sales presentations, proposals and pitches", "Follow up with prospective clients and maintain lead records"]),
+    required_skills: JSON.stringify(["Communication", "Lead Generation", "Sales and Negotiation", "Presentation Skills", "CRM or Spreadsheet Skills"]),
+    qualification: JSON.stringify(["Pursuing or recently completed a degree in Business, Marketing, Sales or a related field", "Interest in client relations and business development"]),
+  });
+})();
 
 export default db;
